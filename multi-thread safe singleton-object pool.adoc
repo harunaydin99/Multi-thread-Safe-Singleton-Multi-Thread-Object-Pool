@@ -1,0 +1,59 @@
+Multi-thread safe singleton Multi Thread Object Pool Uygulama Projesi
+====================================================================
+
+
+Proje İçeriği
+--------------
+Bu projede Swift dili kullanarak Multi thread object pool kullanan bir sistemi singleton design pattern ile multi thread safe olarak gerçeklemeye çalışıldı. 
+
+15 adet thread (Swift dilinde "queue" olarak geçiyor) bir database'e bağlantı yapmak için nesne kullanmak istemektedir. Ancak bu bağlantı işlemini gerçekleştirecek olan connection nesneleri üretimi uzundur. Bu yüzden nesneleri bir havuzda toplayıp, thread lere de o havuzdan boşta nesne oldukça verilmektedir.
+
+Toplamda 15 adet thread ve 10 adet connection nesnesi vardır. Bu threadlerden 10 tanesi istek yapar ve nesneyi kullanıp daha sonra havuza bırakır. Geri kalan 5 thread ise bu sürede beklemektedir. Havuzda tekrar nesne olduğunda geriye kalan bu beş thread de nesneleri alıp kullandıkta sonra havuza bırakır. 
+
+Connection objelerinin oluşturulması ve çalışması vakit aldığı için bu projede object pool tasarım kalıbı uygulanmıştır. Aynı zamanda singleton tasarım kalıbı ile de uygulamamızda birden fazla yerde kullandığımız veya sürekli ihtiyacımız olan objenin oluşturulması sağlanmıştır. Bu projede connection nesnesi dağıtma görevi Multi thread safe singleton class olan "Connection" class ı üzerinden ilerlemketedir.
+
+
+
+Multi Thread Safe Singleton
+---------------------------
+1. adım -> static var poolManager:PoolManager? = PoolManager()
+2. adım -> private init(){}  -- private constructor
+3. adım -> 
+    static func createObject() -> PoolManager {
+        poolLock2.lock()
+        if poolManager == nil {
+            poolManager = PoolManager()
+        }
+        poolLock2.unlock()
+        return poolManager!
+        
+    }
+    
+Bu fonksiyon sayesinde de poolManager nesnesine ihtiyacımız olduğunda elde edebiliyoruz. Burada kullanmış olduğumuz "lock" yapısı sayesinde aynı anda birden fazla thread bu fonksiyona girememiş oluyor. Bunun sonucunda da multi thread safe singleton yapısı kurmuş oluyoruz.
+
+
+Object Pool Yapısı
+~~~~~~~~~~~~~~~~~
+    func takeConnection() -> Connection? {
+        poolLock.lock()
+       // print(connections.count)
+        if connections.count == 0 {
+            print("maalesef connection yok...Lütfen bekleyiniz...\n")
+            poolLock.unlock()
+            return nil
+        } else {
+            let connect = connections.first
+            connections.removeFirst()
+            poolLock.unlock()
+            return connect
+        }
+    }
+    
+    
+    func releaseConnection(con : Connection) {
+        poolLock.lock()
+        connections.append(con)
+        poolLock.unlock()
+    }
+
+Bu fonksiyonlar sayesinde de projemizdeki thread ler ihtiyacı olduğunda connection nesnesi alıp kullanıyor. Ve sonrasında işlem tamamlandığında ise releaseConnection() fonksiyonu ile nesne tekrar havuza bırakılmış oluyor.

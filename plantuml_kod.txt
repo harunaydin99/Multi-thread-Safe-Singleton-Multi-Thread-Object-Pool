@@ -1,0 +1,61 @@
+@startuml
+' STYLE START
+
+skinparam shadowing false
+' STYLE END
+
+
+class "ViewController" as ViewController << (C, DarkSeaGreen) >> { 
+  ~queue1
+  ~queue2
+  ~queue3
+  ~queue4
+  ~queue5
+  ~queue6
+  ~queue7
+  ~queue8
+  ~queue9
+  ~queue10
+  ~queue11
+  ~queue12
+  ~queue13
+  ~queue14
+  ~queue15
+  ~mainQueue
+  ~lock
+  ~queues : [DispatchQueue]
+  ~viewDidLoad() 
+}
+UIViewController <|-- ViewController : inherits
+class "PoolManager" as PoolManager << (C, DarkSeaGreen) >> { 
+  ~{static} poolManager : PoolManager?
+  ~con1
+  ~con2
+  ~con3
+  ~con4
+  ~con5
+  ~con6
+  ~con7
+  ~con8
+  ~con9
+  ~con10
+  ~connections : [Connection]
+  ~poolLock
+  ~{static} poolLock2
+  -init()
+  ~fillPool()
+  ~{static} createObject()
+  ~takeConnection()
+  ~releaseConnection(con:) 
+}
+class "Database" as Database << (P, GoldenRod) protocol >> { 
+  ~connect() 
+}
+class "Connection" as Connection << (C, DarkSeaGreen) >> { 
+  ~init()
+  ~lock
+  ~connect() 
+}
+Database <|-- Connection : inherits
+
+@enduml
